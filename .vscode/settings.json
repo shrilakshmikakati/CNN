@@ -12,7 +12,7 @@
             "name": "MySQL local",
             "database": "Docverifiers",
             "username": "root",
-            "password": "Tejal@123",
+            "password": "Tejal123",
             "connectionTimeout": 30
         }
     ]
