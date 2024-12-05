@@ -5,5 +5,3 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL
 );
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'Tejal123';
-
-SELECT * FROM users;
