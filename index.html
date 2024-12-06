@@ -37,8 +37,6 @@
 
       <div id="logo" class="pull-left">
         <h1><a href="#intro" class="scrollto">BlockVerifiers</a></h1>
-        <!-- Uncomment below if you prefer to use an image logo -->
-        <!-- <a href="#intro"><img src="img/logo.png" alt="" title="" /></a>-->
       </div>
       <nav id="nav-menu-container">
         <ul class="nav-menu">
@@ -74,23 +72,168 @@
   <!--Services-->
   <section id="services">
   <div class="container">
-      <h1>Services</h1>
+    <div class="section-header">
+      <h3>Services</h3><br>
       <p>Streamline your document authentication process with our secure verification platform.</p>
-    <h3>File Upload System</h3>
-        
+    </div>
+    <div class="FileUpload">
+    <h3>File Upload</h3>
     <div class="upload-area" id="dropZone">
         <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple>
         <div class="upload-text">
             Drag & Drop files here or click to browse
             <br>
             <small>(PDF, JPG, PNG files only)</small>
+          </div>
         </div>
     </div>
-
     <div class="error-message" id="errorMessage"></div>
     <div class="success-message" id="successMessage"></div>
     <div class="file-list" id="fileList"></div>
   </div>
+    <!--javascript-->
+    <script>
+      const dropZone = document.getElementById('dropZone');
+      const fileInput = document.getElementById('fileInput');
+      const fileList = document.getElementById('fileList');
+      const errorMessage = document.getElementById('errorMessage');
+      const successMessage = document.getElementById('successMessage');
+
+      // File upload events
+      dropZone.addEventListener('click', () => fileInput.click());
+      dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('dragover');
+      });
+      dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('dragover');
+      });
+      dropZone.addEventListener('drop', handleFileDrop);
+      fileInput.addEventListener('change', handleFileSelect);
+
+      function handleFileDrop(e) {
+          e.preventDefault();
+          dropZone.classList.remove('dragover');
+          const files = e.dataTransfer.files;
+          handleFiles(files);
+      }
+
+      function handleFileSelect(e) {
+          const files = e.target.files;
+          handleFiles(files);
+      }
+
+      function handleFiles(files) {
+          Array.from(files).forEach(file => {
+              if (validateFile(file)) {
+                  uploadFile(file);
+              }
+          });
+      }
+
+      function validateFile(file) {
+          const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+          const maxSize = 5 * 1024 * 1024; // 5MB
+
+          if (!allowedTypes.includes(file.type)) {
+              showError('Invalid file type. Only PDF, JPG, and PNG files are allowed.');
+              return false;
+          }
+
+          if (file.size > maxSize) {
+              showError('File size exceeds 5MB limit.');
+              return false;
+          }
+
+          return true;
+      }
+
+      function uploadFile(file) {
+          // Create file item element
+          const fileItem = document.createElement('div');
+          fileItem.className = 'file-item';
+          
+          const fileIcon = document.createElement('div');
+          fileIcon.className = 'file-icon';
+          fileIcon.textContent = file.type.includes('pdf') ? 'PDF' : 'IMG';
+
+          const fileDetails = document.createElement('div');
+          fileDetails.className = 'file-details';
+          
+          const fileName = document.createElement('div');
+          fileName.className = 'file-name';
+          fileName.textContent = file.name;
+
+          const fileSize = document.createElement('div');
+          fileSize.className = 'file-size';
+          fileSize.textContent = formatFileSize(file.size);
+
+          const progressBar = document.createElement('div');
+          progressBar.className = 'progress-bar';
+          progressBar.style.display = 'block';
+          
+          const progress = document.createElement('div');
+          progress.className = 'progress';
+          
+          progressBar.appendChild(progress);
+          fileDetails.appendChild(fileName);
+          fileDetails.appendChild(fileSize);
+          fileDetails.appendChild(progressBar);
+          fileItem.appendChild(fileIcon);
+          fileItem.appendChild(fileDetails);
+          
+          fileList.insertBefore(fileItem, fileList.firstChild);
+
+          // Simulate file upload
+          simulateUpload(progress, fileItem);
+      }
+
+      function simulateUpload(progressElement, fileItem) {
+          let progress = 0;
+          const interval = setInterval(() => {
+              progress += Math.random() * 30;
+              if (progress >= 100) {
+                  progress = 100;
+                  clearInterval(interval);
+                  progressElement.parentElement.style.display = 'none';
+                  
+                  const fileDate = document.createElement('div');
+                  fileDate.className = 'file-date';
+                  fileDate.textContent = new Date().toLocaleString();
+                  fileItem.querySelector('.file-details').appendChild(fileDate);
+                  
+                  showSuccess('File uploaded successfully!');
+              }
+              progressElement.style.width = `${progress}%`;
+          }, 500);
+      }
+
+      function formatFileSize(bytes) {
+          if (bytes === 0) return '0 Bytes';
+          const k = 1024;
+          const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      function showError(message) {
+          errorMessage.textContent = message;
+          errorMessage.style.display = 'block';
+          successMessage.style.display = 'none';
+          setTimeout(() => {
+              errorMessage.style.display = 'none';
+          }, 3000);
+      }
+
+      function showSuccess(message) {
+          successMessage.textContent = message;
+          successMessage.style.display = 'block';
+          errorMessage.style.display = 'none';
+          setTimeout(() => {
+              successMessage.style.display = 'none';
+          }, 3000);
+      }
+  </script>
 </section>
     <!--==========================
       About Us Section
@@ -176,7 +319,7 @@ We aim to empower individuals and organizations with a trustworthy solution for 
                   <h4>Shrilakshmi Kakati</h4>
                   <span></span>
                   <div class="social">
-                    <a href=""><i class="fa fa-linkedin"></i></a>
+                    <a href="https://www.linkedin.com/in/shrilakshmi-kakati-5435b8244/"><i class="fa fa-linkedin"></i></a>
                   </div>
                 </div>
               </div>
@@ -191,7 +334,7 @@ We aim to empower individuals and organizations with a trustworthy solution for 
                   <h4>Shrinidhi Hosmath</h4>
                   <span></span>
                   <div class="social">
-                    <a href=""><i class="fa fa-linkedin"></i></a>
+                    <a href="https://www.linkedin.com/in/shrinidhi-hosamath-853995282/"><i class="fa fa-linkedin"></i></a>
                   </div>
                 </div>
               </div>
@@ -206,7 +349,7 @@ We aim to empower individuals and organizations with a trustworthy solution for 
                   <h4>Tejal Kavatage</h4>
                   <span></span>
                   <div class="social">
-                    <a href=""><i class="fa fa-linkedin"></i></a>
+                    <a href="www.linkedin.com/in/tejal-kavatage-033b32307/"><i class="fa fa-linkedin"></i></a>
                   </div>
                 </div>
               </div>
