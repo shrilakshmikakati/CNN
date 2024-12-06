@@ -48,7 +48,7 @@
           <li><a href="#team">Team</a></li>
           <li><a href="#contact">Contact</a></li>
           <li><a href="login.html">Login</a></li>
-          <li><a href="SignUp.html">Sign Up</a></li>
+          <li><a href="http://localhost:8000/signup.php">Sign Up</a></li>
         </ul>
       </nav><!-- #nav-menu-container -->
     </div>
@@ -64,7 +64,7 @@
               <div class="carousel-content">
                 <h2>We are BlockVerifiers!</h2>
                 <p>Revolutionizing trust and transparency with a secure, blockchain-powered document verification system.</p>
-                <a href="SignUp.html" class="btn-get-started scrollto">Get Started</a>
+                <a href="signup.php" class="btn-get-started scrollto">Get Started</a>
               </div>
           </div>
             </div>
@@ -73,22 +73,24 @@
 
   <!--Services-->
   <section id="services">
-    <div class="container">
-    <header class="section-header wow fadeInUp">
-      <h3>Services</h3>
+  <div class="container">
+      <h1>Services</h1>
       <p>Streamline your document authentication process with our secure verification platform.</p>
-    </header>
-      <form id="UploadForm">
-        <label for="name">User Name:</label>
-          <input type="text" id="userName" placeholder="Enter Your Name" required>
-          <div class="file-input">
-            <label for="document">Upload Document</label>
-              <input type="file" id="documentUpload" accept=".webp,.jpeg,.jpg,.pdf" required>
-              <div class="placeholder">Upload your file here (PDF, JPEG, WEBP)</div>
-          </div>
-          <button type="submit">Verify Document</button>
-      </form>
+    <h3>File Upload System</h3>
+        
+    <div class="upload-area" id="dropZone">
+        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple>
+        <div class="upload-text">
+            Drag & Drop files here or click to browse
+            <br>
+            <small>(PDF, JPG, PNG files only)</small>
+        </div>
     </div>
+
+    <div class="error-message" id="errorMessage"></div>
+    <div class="success-message" id="successMessage"></div>
+    <div class="file-list" id="fileList"></div>
+  </div>
 </section>
     <!--==========================
       About Us Section
@@ -324,11 +326,6 @@ We aim to empower individuals and organizations with a trustworthy solution for 
   <script src="lib/isotope/isotope.pkgd.min.js"></script>
   <script src="lib/lightbox/js/lightbox.min.js"></script>
   <script src="lib/touchSwipe/jquery.touchSwipe.min.js"></script>
-  <!-- Contact Form JavaScript File -->
-  <script src="contactform/contactform.js"></script>
-
-  <!-- Template Main Javascript File -->
   <script src="js/main.js"></script>
-
 </body>
 </html>

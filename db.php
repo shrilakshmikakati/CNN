@@ -1,12 +1,12 @@
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "Tejal123";
-$dbname = "Docverifiers";
+<?php 
+$servername = "localhost"; 
+$username = "root"; 
+$password = "tejal123"; 
+$dbname = "docverifiers";  
 
-$conn = new mysqli($localhost, $root, $Tejal123, $Docverifiers);
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+if ($conn->connect_error) {     
+    die("Connection failed: " . $conn->connect_error); 
+} 
 ?>
