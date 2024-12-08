@@ -69,173 +69,438 @@
           </div>
   </section><!-- #intro -->
 
-  <!--Services-->
-  <section id="services">
-  <div class="container">
-    <div class="section-header">
-      <h3>Services</h3><br>
-      <p>Streamline your document authentication process with our secure verification platform.</p>
-    </div>
-    <div class="FileUpload">
-    <h3>File Upload</h3>
-    <div class="upload-area" id="dropZone">
-        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" multiple>
-        <div class="upload-text">
-            Drag & Drop files here or click to browse
-            <br>
-            <small>(PDF, JPG, PNG files only)</small>
-          </div>
+<!--"C:\Users\TEJAL\Desktop\images (1).jpeg"
+  services
+  -->
+    <section class="services">
+        <div class="section-header">
+            <h3>Services</h3>
+            <p>Secure document authentication using blockchain technology</p>
+        </div>
+        
+        <div id="file-upload">
+            <input 
+                type="file" 
+                id="document-input" 
+                accept=".pdf,.doc,.docx,.txt,.jpg,.png,.jpeg"
+                onchange="handleFileSelect(event)"
+            >
+        </div>
+        
+        <div id="file-details" style="display:none;">
+            <p><strong>File Name:</strong> <span id="file-name"></span></p>
+            <p><strong>File Type:</strong> <span id="file-type"></span></p>
+            <p><strong>File Size:</strong> <span id="file-size"></span></p>
+        </div>
+        
+        <button id="upload-button" onclick="uploadToBlockchain()" disabled>Upload to Blockchain</button>
+        <div id="upload-status"></div>
+
+        <div id="verification-container" style="display:none;">
+            <button id="verify-button" onclick="verifyDocument()">Verify Document</button>
+            <div id="verification-status"></div>
+        </div>
+
+        <div id="debug-info">
+            <h4>Debug Information</h4>
+            <pre id="debug-output"></pre>
         </div>
     </div>
-    <div class="error-message" id="errorMessage"></div>
-    <div class="success-message" id="successMessage"></div>
-    <div class="file-list" id="fileList"></div>
-  </div>
-    <!--javascript-->
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
     <script>
-      const dropZone = document.getElementById('dropZone');
-      const fileInput = document.getElementById('fileInput');
-      const fileList = document.getElementById('fileList');
-      const errorMessage = document.getElementById('errorMessage');
-      const successMessage = document.getElementById('successMessage');
+        // Display status messages (MOVE THIS TO THE TOP)
+        function showStatus(message, type) {
+            const statusElement = document.getElementById('upload-status');
+            statusElement.textContent = message;
+            statusElement.className = type || '';
+        }
 
-      // File upload events
-      dropZone.addEventListener('click', () => fileInput.click());
-      dropZone.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          dropZone.classList.add('dragover');
-      });
-      dropZone.addEventListener('dragleave', () => {
-          dropZone.classList.remove('dragover');
-      });
-      dropZone.addEventListener('drop', handleFileDrop);
-      fileInput.addEventListener('change', handleFileSelect);
+        // Debug logging function
+        function debugLog(message) {
+            const debugOutput = document.getElementById('debug-output');
+            const timestamp = new Date().toISOString();
+            debugOutput.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
 
-      function handleFileDrop(e) {
-          e.preventDefault();
-          dropZone.classList.remove('dragover');
-          const files = e.dataTransfer.files;
-          handleFiles(files);
-      }
+        // Configuration Constants
+        const CONFIG = {
+            MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+            SUPPORTED_FILE_TYPES: [
+                'application/pdf', 
+                'image/jpeg', 
+                'image/jpg',
+                'image/png'
+            ],
+            CONTRACT_ADDRESS: '0xe6df5f212766182E9db19DDCC3bB5Dc214906c5D', // Replace with your actual deployed contract address
+            CONTRACT_ABI: [
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "documentHash",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "DocumentStored",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "documentHash",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "bool",
+				"name": "isVerified",
+				"type": "bool"
+			}
+		],
+		"name": "DocumentVerified",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_documentHash",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_metadata",
+				"type": "string"
+			}
+		],
+		"name": "storeDocument",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"name": "documents",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "documentHash",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "exists",
+				"type": "bool"
+			},
+			{
+				"internalType": "string",
+				"name": "metadata",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_documentHash",
+				"type": "string"
+			}
+		],
+		"name": "getDocumentOwner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_documentHash",
+				"type": "string"
+			}
+		],
+		"name": "verifyDocument",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
+        };
 
-      function handleFileSelect(e) {
-          const files = e.target.files;
-          handleFiles(files);
-      }
+        // Web3 and contract variables
+        let web3, contract, currentFileHash, currentFile;
 
-      function handleFiles(files) {
-          Array.from(files).forEach(file => {
-              if (validateFile(file)) {
-                  uploadFile(file);
-              }
-          });
-      }
+        // Web3 initialization
+        async function initWeb3() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Request account access
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // Create Web3 instance
+                    web3 = new Web3(window.ethereum);
+                    
+                    // Get current network
+                    const networkId = await web3.eth.net.getId();
+                    debugLog(`Connected to Network ID: ${networkId}`);
+                    
+                    // Initialize contract
+                    contract = new web3.eth.Contract(CONFIG.CONTRACT_ABI, CONFIG.CONTRACT_ADDRESS);
+                    
+                    // Validate contract methods
+                    if (!contract.methods.storeDocument || !contract.methods.verifyDocument) {
+                        throw new Error('Required contract methods not found');
+                    }
+                    
+                    debugLog('Web3 and contract initialized successfully');
+                    return true;
+                } catch (error) {
+                    debugLog(`Web3 Initialization Error: ${error.message}`);
+                    showStatus(`Initialization failed: ${error.message}`, 'error');
+                    return false;
+                }
+            } else {
+                debugLog('No Ethereum wallet detected');
+                showStatus('Please install an Ethereum wallet like MetaMask!', 'error');
+                return false;
+            }
+        }
 
-      function validateFile(file) {
-          const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-          const maxSize = 5 * 1024 * 1024; // 5MB
+        // File selection handler
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Validate file type and size
+                if (!CONFIG.SUPPORTED_FILE_TYPES.includes(file.type)) {
+                    showStatus('Unsupported file type', 'error');
+                    event.target.value = ''; // Clear file input
+                    return;
+                }
 
-          if (!allowedTypes.includes(file.type)) {
-              showError('Invalid file type. Only PDF, JPG, and PNG files are allowed.');
-              return false;
-          }
+                if (file.size > CONFIG.MAX_FILE_SIZE) {
+                    showStatus('File too large. Maximum size is 5MB', 'error');
+                    event.target.value = ''; // Clear file input
+                    return;
+                }
 
-          if (file.size > maxSize) {
-              showError('File size exceeds 5MB limit.');
-              return false;
-          }
+                // Store current file
+                currentFile = file;
 
-          return true;
-      }
+                // Display file details
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('file-type').textContent = file.type;
+                document.getElementById('file-size').textContent = `${(file.size / 1024).toFixed(2)} KB`;
+                
+                // Show file details
+                document.getElementById('file-details').style.display = 'block';
+                
+                // Reset verification container
+                document.getElementById('verification-container').style.display = 'none';
+                document.getElementById('verification-status').textContent = '';
+                
+                // Enable upload button
+                document.getElementById('upload-button').disabled = false;
+            }
+        }
 
-      function uploadFile(file) {
-          // Create file item element
-          const fileItem = document.createElement('div');
-          fileItem.className = 'file-item';
-          
-          const fileIcon = document.createElement('div');
-          fileIcon.className = 'file-icon';
-          fileIcon.textContent = file.type.includes('pdf') ? 'PDF' : 'IMG';
+        // Generate SHA-256 hash of file
+        async function generateFileHash(file) {
+            try {
+                const buffer = await file.arrayBuffer();
+                const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                return hashHex;
+            } catch (error) {
+                debugLog(`File Hash Generation Error: ${error.message}`);
+                showStatus(`Error generating file hash: ${error.message}`, 'error');
+                throw error;
+            }
+        }
 
-          const fileDetails = document.createElement('div');
-          fileDetails.className = 'file-details';
-          
-          const fileName = document.createElement('div');
-          fileName.className = 'file-name';
-          fileName.textContent = file.name;
+        // Upload document to blockchain
+        async function uploadToBlockchain() {
+            if (!currentFile) {
+                showStatus('Please select a file first', 'error');
+                return;
+            }
 
-          const fileSize = document.createElement('div');
-          fileSize.className = 'file-size';
-          fileSize.textContent = formatFileSize(file.size);
+            // Initialize Web3 connection
+            const isConnected = await initWeb3();
+            if (!isConnected) return;
 
-          const progressBar = document.createElement('div');
-          progressBar.className = 'progress-bar';
-          progressBar.style.display = 'block';
-          
-          const progress = document.createElement('div');
-          progress.className = 'progress';
-          
-          progressBar.appendChild(progress);
-          fileDetails.appendChild(fileName);
-          fileDetails.appendChild(fileSize);
-          fileDetails.appendChild(progressBar);
-          fileItem.appendChild(fileIcon);
-          fileItem.appendChild(fileDetails);
-          
-          fileList.insertBefore(fileItem, fileList.firstChild);
+            try {
+                // Generate file hash
+                currentFileHash = await generateFileHash(currentFile);
+                
+                // Get current user's account
+                const accounts = await web3.eth.getAccounts();
+                debugLog(`Using account: ${accounts[0]}`);
+                
+                // First, verify if document already exists
+                const verificationResult = await contract.methods
+                    .verifyDocument(currentFileHash)
+                    .call();
+                
+                // Correctly extract the verification status
+                const isVerified = verificationResult[0];
+                const existingOwner = verificationResult[1];
+                
+                if (isVerified) {
+                    // If document exists, show a detailed message
+                    showStatus(`Document already exists. Owned by: ${existingOwner}`, 'error');
+                    return;
+                }
+                
+                // Estimate gas
+                const gasEstimate = await contract.methods
+                    .storeDocument(currentFileHash, currentFile.name)
+                    .estimateGas({ from: accounts[0] });
+                debugLog(`Estimated Gas: ${gasEstimate}`);
+                
+                // Upload document hash to blockchain
+                const receipt = await contract.methods
+                    .storeDocument(currentFileHash, currentFile.name)
+                    .send({
+                        from: accounts[0],
+                        gas: gasEstimate
+                    });
+                
+                // Show success message
+                debugLog(`Transaction Hash: ${receipt.transactionHash}`);
+                showStatus(`Document uploaded successfully! Hash: ${currentFileHash}`, 'success');
+                
+                // Show verification container
+                document.getElementById('verification-container').style.display = 'block';
+            } catch (error) {
+                // Detailed error handling
+                if (error.message.includes('Document already exists')) {
+                    showStatus('This document has already been registered in the system.', 'error');
+                } else {
+                    // Show detailed error message for other types of errors
+                    debugLog(`Upload Failed: ${error.message}`);
+                    showStatus(`Upload failed: ${error.message}`, 'error');
+                }
+            }
+        }
 
-          // Simulate file upload
-          simulateUpload(progress, fileItem);
-      }
+        // Verify document on blockchain
+        async function verifyDocument() {
+            if (!currentFileHash) {
+                showStatus('Please upload a document first', 'error');
+                return;
+            }
 
-      function simulateUpload(progressElement, fileItem) {
-          let progress = 0;
-          const interval = setInterval(() => {
-              progress += Math.random() * 30;
-              if (progress >= 100) {
-                  progress = 100;
-                  clearInterval(interval);
-                  progressElement.parentElement.style.display = 'none';
-                  
-                  const fileDate = document.createElement('div');
-                  fileDate.className = 'file-date';
-                  fileDate.textContent = new Date().toLocaleString();
-                  fileItem.querySelector('.file-details').appendChild(fileDate);
-                  
-                  showSuccess('File uploaded successfully!');
-              }
-              progressElement.style.width = `${progress}%`;
-          }, 500);
-      }
+            try {
+                // Log the hash being verified
+                debugLog(`Attempting to verify document hash: ${currentFileHash}`);
 
-      function formatFileSize(bytes) {
-          if (bytes === 0) return '0 Bytes';
-          const k = 1024;
-          const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-          const i = Math.floor(Math.log(bytes) / Math.log(k));
-          return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-      }
-
-      function showError(message) {
-          errorMessage.textContent = message;
-          errorMessage.style.display = 'block';
-          successMessage.style.display = 'none';
-          setTimeout(() => {
-              errorMessage.style.display = 'none';
-          }, 3000);
-      }
-
-      function showSuccess(message) {
-          successMessage.textContent = message;
-          successMessage.style.display = 'block';
-          errorMessage.style.display = 'none';
-          setTimeout(() => {
-              successMessage.style.display = 'none';
-          }, 3000);
-      }
-  </script>
-</section>
-    <!--==========================
+                // Call verifyDocument method
+                const result = await contract.methods
+                    .verifyDocument(currentFileHash)
+                    .call();
+                
+                // Correctly access the return values
+                const isVerified = result[0];
+                const owner = result[1];
+                const timestamp = result[2];
+                
+                const verificationStatus = document.getElementById('verification-status');
+                
+                if (isVerified) {
+                    // Successful verification messages
+                    const formattedTimestamp = new Date(timestamp * 1000).toLocaleString();
+                    const messages = [
+                        'Document is verified: Authentic and exists in the system.',
+                        `Document is valid. Owner: ${owner}. Verified on: ${formattedTimestamp}.`
+                    ];
+                    
+                    verificationStatus.textContent = messages[Math.floor(Math.random() * messages.length)];
+                    verificationStatus.className = 'verified';
+                } else {
+                    // Failed verification messages
+                    const messages = [
+                        'Document verification failed: Document does not exist in the system.',
+                        'Document is not authentic or unregistered.'
+                    ];
+                    
+                    verificationStatus.textContent = messages[Math.floor(Math.random() * messages.length)];
+                    verificationStatus.className = 'unverified';
+                }
+            } catch (error) {
+                // Detailed error logging
+                debugLog(`Verification Error: ${error.message}`);
+                showStatus(`Verification failed: ${error.message}`, 'error');
+            }
+        }
+    </script>
+    </section>
+<!--==========================
       About Us Section
     ============================-->
     <section id="about" style="background-image: url('img/about-bg.jpg')";>
